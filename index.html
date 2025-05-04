@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Flower Boutique Platform</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #fff0f5; margin: 0; }
+    header, footer { background: #d63384; color: white; padding: 15px 30px; }
+    nav { display: flex; justify-content: space-between; align-items: center; background: #f8d7da; padding: 10px 30px; }
+    nav select, nav button {
+      margin-left: 10px;
+      padding: 6px 8px;
+      border: none;
+      border-radius: 5px;
+      width: 100px; /* narrower width */
+    }
+
+    .container { padding: 20px; max-width: 1100px; margin: auto; }
+    .hidden { display: none; }
+
+    .auth input {
+      width: 80%;
+      padding: 8px;
+      margin: 8px 0;
+      font-size: 16px; /* larger font size for login fields */
+    }
+
+    .auth {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 300px;
+      border-radius: 10px;
+    }
+
+    .filter, .cart, .payment, .feedback, .section-title { margin-top: 20px; }
+
+    .grid { display: flex; flex-wrap: wrap; gap: 20px; }
+    .product {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 15px;
+      width: 230px;
+      text-align: center;
+    }
+
+    .product img { width: 100%; height: 180px; object-fit: cover; border-radius: 6px; }
+
+    .product button, .cart button, .btn {
+      background: #d63384;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌸 Flower Boutique Platform</h1>
+</header>
+
+<nav>
+  <div>
+    <label>Language:</label>
+    <select>
+      <option>🇺🇸 EN</option>
+      <option>🇸🇦 AR</option>
+    </select>
+    <label>Currency:</label>
+    <select id="currency" onchange="updateCurrency()">
+      <option>SAR</option>
+      <option>USD</option>
+    </select>
+  </div>
+  <div>
+    <button onclick="showLogin()" id="loginBtn">Login</button>
+    <button onclick="logout()" id="logoutBtn" class="hidden">Logout</button>
+    <button onclick="showSection('checkout')" class="hidden" id="checkoutBtn">Go to Checkout</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- LOGIN SECTION -->
+  <div id="loginSection" class="auth hidden">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div id="homeSection">
+    <div class="filter">
+      <label>Filter by Type:</label>
+      <select onchange="filterProducts(this.value)">
+        <option value="all">All</option>
+        <option value="bouquet">Bouquets</option>
+        <option value="plant">Plants</option>
+        <option value="gift">Gift Boxes</option>
+      </select>
+    </div>
+
+    <div class="grid" id="productList"></div>
+
+    <div class="cart">
+      <h2>🛒 Cart</h2>
+      <div id="cartItems"></div>
+      <p class="total">Total: <span id="total">0</span> <span id="curr">SAR</span></p>
+    </div>
+  </div>
+
+  <!-- CHECKOUT PAGE -->
+  <div id="checkoutSection" class="hidden">
+    <h2 class="section-title">💳 Payment</h2>
+    <input type="text" placeholder="Card Number">
+    <input type="text" placeholder="CVV">
+    <input type="text" placeholder="IBAN">
+    <select>
+      <option>Credit Card</option>
+      <option>Apple Pay</option>
+      <option>Google Pay</option>
+    </select>
+    <button onclick="alert('Payment Successful!')" class="btn">Submit Payment</button>
+
+    <h2 class="section-title">📝 Feedback</h2>
+    <input type="text" placeholder="Your Name">
+    <input type="email" placeholder="Email">
+    <select>
+      <option value="">Rate Us</option>
+      <option>Excellent</option>
+      <option>Good</option>
+      <option>Average</option>
+      <option>Poor</option>
+    </select>
+    <textarea placeholder="Your feedback here..." rows="4"></textarea>
+    <button onclick="alert('Thank you for your feedback!')" class="btn">Submit Feedback</button>
+
+    <button onclick="showSection('home')" class="btn btn-secondary">← Back to Home</button>
+  </div>
+
+</div>
+
+<footer>
+  <p style="text-align:center;">© 2025 Flower Boutique</p>
+</footer>
+
+<script>
+  const products = [
+    { name: "Rose Bouquet", price: 120, img: "https://g.top4top.io/p_3406jet8z1.png", type: "bouquet" },
+    { name: "Tulip Surprise", price: 95, img: "https://g.top4top.io/p_340644ft11.jpg", type: "bouquet" },
+    { name: "Succulent Pot", price: 85, img: "https://a.top4top.io/p_3406e0hgb1.png", type: "plant" },
+    { name: "Floral Gift Box", price: 140, img: "https://d.top4top.io/p_340663rw01.jpg", type: "gift" }
+  ];
+  let cart = [];
+  let currency = "SAR";
+  let isLoggedIn = false;
+
+  function renderProducts(filter = "all") {
+    const container = document.getElementById("productList");
+    container.innerHTML = '';
+    products.filter(p => filter === "all" || p.type === filter).forEach((p, i) => {
+      container.innerHTML += `
+        <div class="product">
+          <img src="${p.img}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>${p.price} ${currency}</p>
+          <button onclick="addToCart(${i})">Add to Cart</button>
+        </div>`;
+    });
+  }
+
+  function filterProducts(type) {
+    renderProducts(type);
+  }
+
+  function addToCart(index) {
+    const item = products[index];
+    const existing = cart.find(c => c.name === item.name);
+    if (existing) {
+      existing.qty++;
+    } else {
+      cart.push({ ...item, qty: 1 });
+    }
+    renderCart();
+  }
+
+  function renderCart() {
+    const container = document.getElementById("cartItems");
+    container.innerHTML = '';
+    let total = 0;
+    cart.forEach((item, i) => {
+      total += item.qty * item.price;
+      container.innerHTML += `
+        <div class="cart-item">
+          <span>${item.name}</span>
+          <span>
+            <button onclick="changeQty(${i}, -1)">−</button>
+            ${item.qty}
+            <button onclick="changeQty(${i}, 1)">+</button>
+          </span>
+        </div>`;
+    });
+    document.getElementById("total").textContent = total.toFixed(2);
+  }
+
+  function changeQty(i, delta) {
+    cart[i].qty += delta;
+    if (cart[i].qty <= 0) cart.splice(i, 1);
+    renderCart();
+  }
+
+  function updateCurrency() {
+    currency = document.getElementById('currency').value;
+    document.getElementById('curr').innerText = currency;
+    renderProducts();
+    renderCart();
+  }
+
+  function showLogin() {
+    document.getElementById("loginSection").classList.remove("hidden");
+  }
+
+  function login() {
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+    if (user && pass) {
+      isLoggedIn = true;
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("loginBtn").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+      document.getElementById("checkoutBtn").classList.remove("hidden");
+      alert("Logged in successfully!");
+    } else {
+      alert("Enter valid username and password.");
+    }
+  }
+
+  function logout() {
+    isLoggedIn = false;
+    document.getElementById("loginBtn").classList.remove("hidden");
+    document.getElementById("logoutBtn").classList.add("hidden");
+    document.getElementById("checkoutBtn").classList.add("hidden");
+    showSection("home");
+    alert("Logged out.");
+  }
+
+  function showSection(section) {
+    document.getElementById("homeSection").classList.add("hidden");
+    document.getElementById("checkoutSection").classList.add("hidden");
+    if (section === "home") {
+      document.getElementById("homeSection").classList.remove("hidden");
+    } else if (section === "checkout") {
+      if (isLoggedIn) {
+        document.getElementById("checkoutSection").classList.remove("hidden");
+      } else {
+        alert("You must log in first.");
+      }
+    }
+  }
+
+  renderProducts();
+</script>
+
+</body>
+</html>
